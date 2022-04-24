@@ -15,13 +15,13 @@ import platform
 from selenium.webdriver.common.keys import Keys
 # import pathlib
 
-from selenium.webdriver.support.wait import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+# from selenium.webdriver.support.wait import WebDriverWait
+# from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-from . import const
+# from . import const
 import urllib
 
-from .const import get_username, get_password, get_email
+from const import get_username, get_password, get_email
 
 
 # current_dir = pathlib.Path(__file__).parent.absolute()
@@ -46,7 +46,7 @@ def get_data(card, save_images=False, save_dir=None):
         return
 
     try:
-        text = card.find_element(by=By.XPATH, value='.//div[2]/div[2]/div[1]').text
+        text = card.find_element(by=By.XPATH, value='.//div[2]/div[2]/div[2]/div[1]/div[1]/span').text
     except:
         text = ""
 
@@ -114,12 +114,19 @@ def get_data(card, save_images=False, save_dir=None):
     except:
         return
 
+    if retweet_cnt != "":
+        embedded = embedded[:embedded.rfind('\n')]
+    if like_cnt != "":
+        embedded = embedded[:embedded.rfind('\n')]
+    if reply_cnt != "":
+        embedded = embedded[:embedded.rfind('\n')]
     tweet = (
         username, handle, postdate, text, embedded, emojis, reply_cnt, retweet_cnt, like_cnt, image_links, tweet_url)
     return tweet
 
 
-def init_driver(headless=True, proxy=None, show_images=False, option=None, firefox=False, env=None):
+def init_driver(headless=True, proxy=None, show_images=False, option=None,
+                firefox=True, env=None):
     """ initiate a chromedriver or firefoxdriver instance
         --option : other option to add (str)
     """

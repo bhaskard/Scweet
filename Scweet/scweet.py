@@ -6,14 +6,15 @@ from time import sleep
 import random
 import pandas as pd
 
-from .utils import init_driver, get_last_date_from_csv, log_search_page, keep_scroling, dowload_images
+from utils import init_driver, get_last_date_from_csv, log_search_page, keep_scroling, dowload_images
 
 
 
 def scrape(since, until=None, words=None, to_account=None, from_account=None, mention_account=None, interval=5, lang=None,
           headless=True, limit=float("inf"), display_type="Top", resume=False, proxy=None, hashtag=None, 
           show_images=False, save_images=False, save_dir="outputs", filter_replies=False, proximity=False, 
-          geocode=None, minreplies=None, minlikes=None, minretweets=None):
+          geocode=None, minreplies=None, minlikes=None, minretweets=None,
+           file_name=None):
     """
     scrape data from twitter using requests, starting from <since> until <until>. The program make a search between each <since> and <until_local>
     until it reaches the <until> date if it's given, else it stops at the actual date.
@@ -50,7 +51,8 @@ def scrape(since, until=None, words=None, to_account=None, from_account=None, me
         path = save_dir + "/" + '_'.join(words) + '_' + str(since).split(' ')[0] + '_' + \
                str(until).split(' ')[0] + '.csv'
     elif from_account:
-        path = save_dir + "/" + from_account + '_' + str(since).split(' ')[0] + '_' + str(until).split(' ')[
+        path = save_dir + "/" + file_name + '_' + str(since).split(' ')[0] + '_' + \
+               str(until).split(' ')[
             0] + '.csv'
     elif to_account:
         path = save_dir + "/" + to_account + '_' + str(since).split(' ')[0] + '_' + str(until).split(' ')[
@@ -184,6 +186,9 @@ if __name__ == '__main__':
                         help='Min. number of likes to the tweet', default=None)
     parser.add_argument('--minretweets', type=int,
                         help='Min. number of retweets to the tweet', default=None)
+    parser.add_argument('--file_name', type=str,
+                        help='Filename to be created',
+                        default=None)
                             
 
     args = parser.parse_args()
@@ -206,9 +211,12 @@ if __name__ == '__main__':
     geocode = args.geocode
     minreplies = args.minreplies
     minlikes = args.minlikes
-    minretweets = args.minlikes
+    minretweets = args.minretweets
+    file_name = args.file_name
 
     data = scrape(since=since, until=until, words=words, to_account=to_account, from_account=from_account, mention_account=mention_account,
                 hashtag=hashtag, interval=interval, lang=lang, headless=headless, limit=limit,
-                display_type=display_type, resume=resume, proxy=proxy, filter_replies=False, proximity=proximity,
-                geocode=geocode, minreplies=minreplies, minlikes=minlikes, minretweets=minretweets)
+                display_type=display_type, resume=resume, proxy=proxy,
+                  filter_replies=True, proximity=proximity,
+                geocode=geocode, minreplies=minreplies, minlikes=minlikes,
+                  minretweets=minretweets, file_name=file_name)
