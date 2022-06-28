@@ -6,7 +6,8 @@ from time import sleep
 import random
 import pandas as pd
 
-from utils import init_driver, get_last_date_from_csv, log_search_page, keep_scroling, dowload_images
+from .utils import init_driver, get_last_date_from_csv, log_search_page, \
+    keep_scroling, dowload_images
 
 
 
@@ -58,7 +59,8 @@ def scrape(since, until=None, words=None, to_account=None, from_account=None, me
         path = save_dir + "/" + to_account + '_' + str(since).split(' ')[0] + '_' + str(until).split(' ')[
             0] + '.csv'
     elif mention_account:
-        path = save_dir + "/" + mention_account + '_' + str(init_date).split(' ')[0] + '_' + str(max_date).split(' ')[
+        path = save_dir + "/" + mention_account + '_' + str(since).split(' ')[0]\
+               + '_' + str(until).split(' ')[
             0] + '.csv'
     elif hashtag:
         path = save_dir + "/" + hashtag + '_' + str(since).split(' ')[0] + '_' + str(until).split(' ')[

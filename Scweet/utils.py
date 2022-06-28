@@ -21,7 +21,7 @@ from selenium.webdriver.common.by import By
 # from . import const
 import urllib
 
-from const import get_username, get_password, get_email
+from .const import get_username, get_password, get_email
 
 
 # current_dir = pathlib.Path(__file__).parent.absolute()
@@ -133,31 +133,49 @@ def init_driver(headless=True, proxy=None, show_images=False, option=None,
 
     if firefox:
         options = FirefoxOptions()
-        driver_path = geckodriver_autoinstaller.install()
-    else:
-        options = ChromeOptions()
-        driver_path = chromedriver_autoinstaller.install()
+        options.add_argument(
+            "user-data-dir=/Users/bhaskar/Library/Application "
+            "Support/Firefox/Profiles/0fe7vlu0.default")  # Path to your chrome profile
 
+        driver_path = '/Users/bhaskar/Downloads/geckodriver'
+        fp = webdriver.FirefoxProfile(
+            '/Users/bhaskar/Library/Application Support/Firefox/Profiles/wmtms1b5.default-release')
+
+        # driver_path = geckodriver_autoinstaller.install()
+    else:
+        prefs = {"profile.password_manager_enabled": True}
+        options = ChromeOptions()
+        options.add_experimental_option("prefs", prefs)
+        # options.add_argument(
+        #     "user-data-dir=/Users/bhaskar/Library/Application Support/Google/Chrome")  # Path to your chrome profile
+        options.add_argument("user-data-dir=/Users/bhaskar/Downloads/chromeprofile")
+        options.add_argument("--start-maximized")
+        # driver_path = chromedriver_autoinstaller.install()
+        driver_path = '/Users/bhaskar/Documents/chromedriver'
     if headless is True:
         print("Scraping on headless mode.")
         options.add_argument('--disable-gpu')
         options.headless = True
     else:
+        print("Scraping on headless mode off")
         options.headless = False
-    options.add_argument('log-level=3')
+    options.add_argument('log-level=1')
     if proxy is not None:
         options.add_argument('--proxy-server=%s' % proxy)
         print("using proxy : ", proxy)
-    if show_images == False and firefox == False:
-        prefs = {"profile.managed_default_content_settings.images": 2}
-        options.add_experimental_option("prefs", prefs)
+    # if show_images == False and firefox == False:
+    #     prefs = {"profile.managed_default_content_settings.images": 2}
+    #     options.add_experimental_option("prefs", prefs)
     if option is not None:
         options.add_argument(option)
 
     if firefox:
-        driver = webdriver.Firefox(options=options, executable_path=driver_path)
+        driver = webdriver.Firefox(options=options,
+                                   executable_path=driver_path, firefox_profile=fp)
     else:
+        print("starting driver")
         driver = webdriver.Chrome(options=options, executable_path=driver_path)
+        print("started driver")
 
     driver.set_page_load_timeout(100)
     return driver
@@ -238,40 +256,41 @@ def get_last_date_from_csv(path):
     return datetime.datetime.strftime(max(pd.to_datetime(df["Timestamp"])), '%Y-%m-%dT%H:%M:%S.000Z')
 
 
-def log_in(driver, env, timeout=20, wait=4):
+def log_in(driver, env, timeout=20, wait=5):
     email = get_email(env)  # const.EMAIL
     password = get_password(env)  # const.PASSWORD
     username = get_username(env)  # const.USERNAME
 
-    driver.get('https://twitter.com/i/flow/login')
+    driver.get('https://twitter.com')
 
-    email_xpath = '//input[@autocomplete="username"]'
-    password_xpath = '//input[@autocomplete="current-password"]'
-    username_xpath = '//input[@data-testid="ocfEnterTextTextInput"]'
-
-    sleep(random.uniform(wait, wait + 1))
-
-    # enter email
-    email_el = driver.find_element(by=By.XPATH, value=email_xpath)
-    sleep(random.uniform(wait, wait + 1))
-    email_el.send_keys(email)
-    sleep(random.uniform(wait, wait + 1))
-    email_el.send_keys(Keys.RETURN)
-    sleep(random.uniform(wait, wait + 1))
-    # in case twitter spotted unusual login activity : enter your username
-    if check_exists_by_xpath(username_xpath, driver):
-        username_el = driver.find_element(by=By.XPATH, value=username_xpath)
-        sleep(random.uniform(wait, wait + 1))
-        username_el.send_keys(username)
-        sleep(random.uniform(wait, wait + 1))
-        username_el.send_keys(Keys.RETURN)
-        sleep(random.uniform(wait, wait + 1))
-    # enter password
-    password_el = driver.find_element(by=By.XPATH, value=password_xpath)
-    password_el.send_keys(password)
-    sleep(random.uniform(wait, wait + 1))
-    password_el.send_keys(Keys.RETURN)
-    sleep(random.uniform(wait, wait + 1))
+    # driver.get('https://twitter.com/i/flow/login') # Do enable this first time only
+    # email_xpath = '//input[@autocomplete="username"]'
+    # password_xpath = '//input[@autocomplete="current-password"]'
+    # username_xpath = '//input[@data-testid="ocfEnterTextTextInput"]'
+    #
+    # sleep(random.uniform(wait, wait + 1))
+    #
+    # # enter email
+    # email_el = driver.find_element(by=By.XPATH, value=email_xpath)
+    # sleep(random.uniform(wait, wait + 1))
+    # email_el.send_keys(email)
+    # sleep(random.uniform(wait, wait + 1))
+    # email_el.send_keys(Keys.RETURN)
+    # sleep(random.uniform(wait, wait + 1))
+    # # in case twitter spotted unusual login activity : enter your username
+    # if check_exists_by_xpath(username_xpath, driver):
+    #     username_el = driver.find_element(by=By.XPATH, value=username_xpath)
+    #     sleep(random.uniform(wait, wait + 1))
+    #     username_el.send_keys(username)
+    #     sleep(random.uniform(wait, wait + 1))
+    #     username_el.send_keys(Keys.RETURN)
+    #     sleep(random.uniform(wait, wait + 1))
+    # # enter password
+    # password_el = driver.find_element(by=By.XPATH, value=password_xpath)
+    # password_el.send_keys(password)
+    # sleep(random.uniform(wait, wait + 1))
+    # password_el.send_keys(Keys.RETURN)
+    # sleep(random.uniform(wait, wait + 1))
 
 
 def keep_scroling(driver, data, writer, tweet_ids, scrolling, tweet_parsed, limit, scroll, last_position,
@@ -324,16 +343,11 @@ def keep_scroling(driver, data, writer, tweet_ids, scrolling, tweet_parsed, limi
     return driver, data, writer, tweet_ids, scrolling, tweet_parsed, scroll, last_position
 
 
-def get_users_follow(users, headless, env, follow=None, verbose=1, wait=2, limit=float('inf')):
+def get_users_follow(driver, users, headless, env, follow=None, verbose=1,
+                     wait=2, limit=float('inf')):
     """ get the following or followers of a list of users """
 
-    # initiate the driver
-    driver = init_driver(headless=headless, env=env, firefox=True)
-    sleep(wait)
-    # log in (the .env file should contain the username and password)
-    # driver.get('https://www.twitter.com/login')
-    log_in(driver, env, wait=wait)
-    sleep(wait)
+
     # followers and following dict of each user
     follows_users = {}
 
@@ -363,6 +377,15 @@ def get_users_follow(users, headless, env, follow=None, verbose=1, wait=2, limit
         follows_elem = []
         follow_ids = set()
         is_limit = False
+        try:
+            aside_ele = driver.find_element(by=By.XPATH, value="//aside")
+            driver.execute_script("""
+            var element = arguments[0];
+            element.parentNode.removeChild(element);
+            """, aside_ele)
+        except:
+            print("aside not available")
+        sleep(wait)
         while scrolling and not is_limit:
             # get the card of following or followers
             # this is the primaryColumn attribute that contains both followings and followers
@@ -375,7 +398,7 @@ def get_users_follow(users, headless, env, follow=None, verbose=1, wait=2, limit
                 follow_elem = element.get_attribute('href')
                 # append to the list
                 follow_id = str(follow_elem)
-                follow_elem = '@' + str(follow_elem).split('/')[-1]
+                follow_elem = str(follow_elem).split('/')[-1]
                 if follow_id not in follow_ids:
                     follow_ids.add(follow_id)
                     follows_elem.append(follow_elem)
